@@ -392,3 +392,27 @@ body::before {
     min-height: 56px;
   }
 }
+
+/* Phones: the result card stays inside the road view with no scrolling */
+@media (max-width: 599px) {
+  #panel-result {
+    gap: 6px;
+    padding: 12px;
+  }
+
+  #panel-result h2 {
+    font-size: 16px;
+  }
+
+  #panel-result .final-list,
+  #panel-result .field,
+  #panel-result #save-status {
+    font-size: 12px;
+  }
+
+  #panel-result .btn {
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}

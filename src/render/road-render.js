@@ -127,22 +127,6 @@ export function createRoadRenderer(canvas) {
         }
       }
 
-      // Neon road edges and rumble stripes
-      for (const [u, col] of [[-ROAD_HALF, CYAN], [ROAD_HALF, MAGENTA]]) {
-        const e0 = p(u, z0);
-        const e1 = p(u, z1);
-        if (!e0 || !e1) continue;
-        ctx.beginPath();
-        ctx.moveTo(e0.x, e0.y);
-        ctx.lineTo(e1.x, e1.y);
-        ctx.strokeStyle = col;
-        ctx.lineWidth = Math.min(8, Math.max(1.5, e0.scale * 0.22));
-        ctx.shadowColor = col;
-        ctx.shadowBlur = 10;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      }
-
       // Distance fog: segments fade into the horizon colour
       const depth = (k + 1) / DRAW_SEGMENTS;
       if (depth > 0.5) {
@@ -151,6 +135,43 @@ export function createRoadRenderer(canvas) {
         ctx.globalAlpha = 1;
       }
     }
+    drawEdges(cam, segs);
+  }
+
+  /**
+   * The neon road edges as continuous lines, one per side, drawn in depth bands.
+   * Each band is a single smooth path, so the lines have no steps between segments.
+   * Bands further away are slightly fainter, which blends them into the horizon.
+   */
+  function drawEdges(cam, segs) {
+    const n = segs.length;
+    const zs = [...segs, segs[n - 1] + SEGMENT];
+    const BAND = 6;
+    for (let start = 0; start < n; start += BAND) {
+      const end = Math.min(n, start + BAND);
+      const alpha = 1 - (start / n) * 0.55;
+      for (const [u, col] of [[-ROAD_HALF, CYAN], [ROAD_HALF, MAGENTA]]) {
+        const pts = [];
+        for (let k = start; k <= end; k += 1) {
+          const z = k === start ? Math.max(zs[k], cam.z + NEAR_CLIP) : zs[k];
+          const pt = projectRoad(cam, u, z, W, H);
+          if (pt) pts.push(pt);
+        }
+        if (pts.length < 2) continue;
+        ctx.beginPath();
+        pts.forEach((pt, i) => (i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y)));
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = col;
+        ctx.lineWidth = Math.min(8, Math.max(1.5, pts[0].scale * 0.22));
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.shadowColor = col;
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+    }
+    ctx.globalAlpha = 1;
   }
 
   function drawCar(cam, car) {

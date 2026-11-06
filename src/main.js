@@ -140,7 +140,7 @@ function finishRun() {
     dom.resultSummary.append(p);
   }
   dom.saveButton.disabled = false;
-  dom.saveButton.textContent = 'Save score and bank money';
+  dom.saveButton.textContent = 'Save & bank money';
   dom.saveStatus.textContent = '';
   showPanel('result');
   refreshLeaderboard();
