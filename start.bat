@@ -8,8 +8,8 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo Starting Neon Traffic Rider at http://localhost:8080
+echo Starting Neon Traffic Rider at http://localhost:8081
 echo Keep this window open while you play. Close it to stop the game.
-start "" cmd /c "timeout /t 2 /nobreak >nul && start http://localhost:8080"
+start "" cmd /c "timeout /t 2 /nobreak >nul && start http://localhost:8081"
 node scripts\serve.mjs
 pause

@@ -188,52 +188,155 @@ export function createRoadRenderer(canvas) {
     for (const car of visible) drawCar(cam, car);
   }
 
-  function drawCockpit(run) {
+  /**
+   * The full bike and rider, seen from behind the rider: front wheel and fork, fuel tank,
+   * fairing with headlight, seat, the rider's jacket, shoulders, arms to the handlebars, and helmet.
+   * Local units (u): x to the right, y up, origin on the ground under the bike.
+   */
+  function drawRider(run, time) {
     const bike = run.bike;
-    const s = Math.min(1, W / 900);
+    const u = Math.min(W / 700, H / 420);
     const cx = W / 2;
-    const base = H * 0.97;
-    // Headlight beam
-    const beam = ctx.createLinearGradient(0, base, 0, H * 0.45);
-    beam.addColorStop(0, 'rgba(255, 246, 194, 0.20)');
+    const base = H * 0.985;
+    const lean = bike.lean;
+    const bob = Math.sin(time * 9) * 0.5 * Math.min(1, bike.speed / 30);
+    const cs = Math.cos(lean * 0.6);
+    const sn = Math.sin(lean * 0.6);
+
+    // Local units to screen: rotate the whole bike about its ground contact by the lean
+    const P = (x, y) => {
+      const lx = x * u;
+      const ly = (y + bob) * u;
+      return [cx + lx * cs - ly * sn, base - (lx * sn + ly * cs)];
+    };
+    const poly = (pts, fill, edge = null, width = 0, glow = 0) => {
+      ctx.beginPath();
+      pts.forEach(([x, y], i) => {
+        const [sx, sy] = P(x, y);
+        if (i === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      });
+      ctx.closePath();
+      if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+      if (edge) {
+        ctx.strokeStyle = edge;
+        ctx.lineWidth = width * u;
+        ctx.shadowColor = edge;
+        ctx.shadowBlur = glow;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+    };
+    const stroke = (pts, colour, width, glow = 0) => {
+      ctx.beginPath();
+      pts.forEach(([x, y], i) => {
+        const [sx, sy] = P(x, y);
+        if (i === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      });
+      ctx.strokeStyle = colour;
+      ctx.lineWidth = width * u;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowColor = colour;
+      ctx.shadowBlur = glow;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    };
+    const disc = (x, y, r, fill, edge = null, width = 0, glow = 0) => {
+      const [sx, sy] = P(x, y);
+      ctx.beginPath();
+      ctx.arc(sx, sy, r * u, 0, Math.PI * 2);
+      ctx.fillStyle = fill;
+      ctx.fill();
+      if (edge) {
+        ctx.strokeStyle = edge;
+        ctx.lineWidth = width * u;
+        ctx.shadowColor = edge;
+        ctx.shadowBlur = glow;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+    };
+
+    // Headlight beam into the road
+    const [hx, hy] = P(52, 128);
+    const beam = ctx.createLinearGradient(0, hy, 0, H * 0.45);
+    beam.addColorStop(0, 'rgba(255, 246, 194, 0.22)');
     beam.addColorStop(1, 'rgba(255, 246, 194, 0)');
     ctx.fillStyle = beam;
     ctx.beginPath();
-    ctx.moveTo(cx - 40 * s, base);
-    ctx.lineTo(cx + 40 * s, base);
-    ctx.lineTo(cx + 260 * s, H * 0.45);
-    ctx.lineTo(cx - 260 * s, H * 0.45);
+    ctx.moveTo(hx - 30 * u, hy);
+    ctx.lineTo(hx + 30 * u, hy);
+    ctx.lineTo(hx + 240 * u, H * 0.45);
+    ctx.lineTo(hx - 240 * u, H * 0.45);
     ctx.closePath();
     ctx.fill();
 
-    // Handlebars rotate with the lean
-    const rot = bike.lean;
-    const hb = (dx, dy) => [cx + Math.cos(rot) * dx - Math.sin(rot) * dy, base - H * 0.12 + Math.sin(rot) * dx + Math.cos(rot) * dy];
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#2b2350';
-    ctx.lineWidth = 12 * s;
+    // Front wheel: tyre, rim, and spokes that turn with the distance travelled
+    const [wx, wy] = P(40, 36);
+    const wr = 36 * u;
     ctx.beginPath();
-    ctx.moveTo(...hb(-150 * s, 0));
-    ctx.lineTo(...hb(150 * s, 0));
-    ctx.stroke();
-    ctx.strokeStyle = CYAN;
-    ctx.lineWidth = 3 * s;
-    ctx.shadowColor = CYAN;
-    ctx.shadowBlur = 12;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // Headlight and mirrors
-    ctx.fillStyle = '#fff6c2';
-    ctx.shadowColor = '#fff6c2';
-    ctx.shadowBlur = 18;
-    ctx.beginPath();
-    ctx.arc(cx, base - H * 0.2, 14 * s, 0, Math.PI * 2);
+    ctx.arc(wx, wy, wr, 0, Math.PI * 2);
+    ctx.fillStyle = '#05030f';
     ctx.fill();
+    ctx.strokeStyle = LIME;
+    ctx.lineWidth = 3 * u;
+    ctx.shadowColor = LIME;
+    ctx.shadowBlur = 10;
+    ctx.stroke();
     ctx.shadowBlur = 0;
-    ctx.fillStyle = LIME;
-    ctx.fillRect(cx - 170 * s, base - H * 0.19, 24 * s, 4 * s);
-    ctx.fillRect(cx + 146 * s, base - H * 0.19, 24 * s, 4 * s);
+    const spin = run.z / 0.36;
+    for (let s = 0; s < 6; s += 1) {
+      const a = spin + (s * Math.PI) / 3;
+      ctx.beginPath();
+      ctx.moveTo(wx, wy);
+      ctx.lineTo(wx + Math.cos(a) * wr * 0.85, wy + Math.sin(a) * wr * 0.85);
+      ctx.strokeStyle = 'rgba(184, 255, 59, 0.6)';
+      ctx.lineWidth = 1.5 * u;
+      ctx.stroke();
+    }
+
+    // Engine, fork and frame
+    poly([[-6, 44], [36, 44], [38, 80], [-4, 80]], '#1b1438', '#7a5cff', 2, 6);
+    stroke([[40, 36], [46, 150]], '#2b2350', 9);
+    stroke([[40, 36], [46, 150]], CYAN, 2, 8);
+    stroke([[-20, 84], [-6, 130]], '#2b2350', 6);
+
+    // Fuel tank and fairing with headlight
+    poly([[-12, 126], [32, 150], [100, 150], [108, 132], [92, 112], [40, 106], [4, 110]], '#1b1438', MAGENTA, 3, 14);
+    poly([[30, 142], [70, 150], [78, 118], [46, 98]], '#241c45', CYAN, 2, 10);
+    disc(54, 124, 9, '#fff6c2', '#fff6c2', 2, 22);
+
+    // Seat
+    poly([[-44, 116], [-6, 132], [-4, 142], [-46, 126]], '#0c0820', LIME, 2, 6);
+
+    // Handlebars: the grips tilt with the lean
+    const gripL = [-48, 178 - lean * 30];
+    const gripR = [142, 178 + lean * 30];
+    stroke([gripL, [46, 150], gripR], '#2b2350', 7);
+    stroke([gripL, [46, 150], gripR], CYAN, 2, 8);
+
+    // Rider: solid jacket from the seat up to the shoulders
+    poly([[-42, 124], [18, 126], [20, 172], [16, 226], [-32, 230], [-38, 176]], '#2b1d4d', MAGENTA, 2.5, 6);
+    poly([[-30, 226], [14, 226], [6, 240], [-22, 240]], '#3a2a63', MAGENTA, 2, 4); // shoulder yoke
+    stroke([[-12, 200], [-10, 128]], 'rgba(0, 245, 255, 0.55)', 2); // zip
+
+    // Arms: solid sleeves from the shoulders to the grips, elbows out, gloves on the grips
+    stroke([[-24, 226], [-46, 204], gripL], '#2b1d4d', 14);
+    stroke([[-24, 226], [-46, 204], gripL], MAGENTA, 2.5, 4);
+    stroke([[8, 226], [60, 206], gripR], '#2b1d4d', 14);
+    stroke([[8, 226], [60, 206], gripR], MAGENTA, 2.5, 4);
+    disc(gripL[0], gripL[1], 8, LIME);
+    disc(gripR[0], gripR[1], 8, LIME);
+
+    // Helmet on the shoulders, seen from behind: shell, centre stripe, visor glint
+    disc(-8, 262, 30, '#14102a', CYAN, 3, 8);
+    stroke([[-8, 236], [-8, 288]], MAGENTA, 2.5, 4);
+    stroke([[-24, 270], [-12, 280]], 'rgba(0, 245, 255, 0.85)', 2.5);
   }
 
   function draw(run, time = performance.now() / 1000) {
@@ -245,7 +348,7 @@ export function createRoadRenderer(canvas) {
     drawSky(cam);
     drawRoad(cam);
     drawTraffic(cam, run.traffic);
-    drawCockpit(run);
+    drawRider(run, time);
   }
 
   return { resize, draw };

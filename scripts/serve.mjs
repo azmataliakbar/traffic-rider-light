@@ -5,7 +5,7 @@ import { extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const port = Number(process.env.PORT) || 8080;
+const port = Number(process.env.PORT) || 8081; // 8080 is used by Hill Climb Light
 
 const types = {
   '.html': 'text/html; charset=utf-8',
@@ -41,6 +41,12 @@ const server = createServer(async (req, res) => {
   }
 });
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${port} is already in use. Close the other game window or set PORT, e.g. PORT=8090 npm start.`);
+  } else console.error(err);
+  process.exit(1);
+});
 server.listen(port, '127.0.0.1', () => {
   console.log(`Neon Traffic Rider running at http://localhost:${port}`);
 });

@@ -7,11 +7,11 @@ A first-person motorbike ride down a winding night highway. Weave through traffi
 Double-click `start.bat`, or run:
 
 ```bash
-npm start          # serves http://localhost:8080
+npm start          # serves http://localhost:8081
 npm test           # runs the unit tests (Node 18+)
 ```
 
-Open http://localhost:8080. ES modules need HTTP, so opening `index.html` directly from disk won't work.
+Open http://localhost:8081. ES modules need HTTP, so opening `index.html` directly from disk won't work.
 
 ## Controls
 
