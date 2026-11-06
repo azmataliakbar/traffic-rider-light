@@ -199,7 +199,7 @@ export function createRoadRenderer(canvas) {
     const rpm = info.rpm ?? 1000;
     const gear = info.gear ?? 0;
     const cx = W / 2;
-    const pivotY = H * (W < 600 ? 0.76 : 0.86); // raised on narrow screens so the pod stays inside the arena
+    const pivotY = H * (W < 600 ? 0.76 : 0.8); // raised on narrow screens so the pod stays inside the arena
     const barHalf = Math.min(W * 0.46, 330);
     const tilt = lean * 0.55; // bar sways with the steering lean
     const barEnd = (side) => [cx + side * barHalf * Math.cos(tilt), pivotY - side * barHalf * Math.sin(tilt) * 0.6];
@@ -258,8 +258,9 @@ export function createRoadRenderer(canvas) {
     // Instrument pod between the grips
     // Narrow screens get a wider, taller pod so the two gauges and their text have room
     const narrow = W < 600;
-    const pw = narrow ? Math.min(W * 0.92, 340) : Math.min(W * 0.5, 320);
-    const ph = narrow ? Math.min(H * 0.42, 170) : Math.min(H * 0.34, 150);
+    // Wide screens get a larger pod and larger text
+    const pw = narrow ? Math.min(W * 0.92, 340) : Math.min(W * 0.5, 380);
+    const ph = narrow ? Math.min(H * 0.42, 170) : Math.min(H * 0.4, 200);
     const px = cx - pw / 2;
     const py = pivotY - ph * 0.62;
     ctx.save();
@@ -331,13 +332,13 @@ export function createRoadRenderer(canvas) {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#f2f6ff';
-      ctx.font = `800 ${Math.round(gaugeR * (big ? 0.42 : 0.36))}px system-ui, sans-serif`;
-      ctx.fillText(String(Math.round(value)), gx, gaugeY + gaugeR * 0.34);
+      ctx.font = `800 ${Math.round(gaugeR * (big ? 0.5 : 0.44))}px system-ui, sans-serif`;
+      ctx.fillText(String(Math.round(value)), gx, gaugeY + gaugeR * 0.52); // below the needle hub
       ctx.fillStyle = '#9aa6c7';
-      ctx.font = `600 ${Math.max(9, Math.round(gaugeR * 0.16))}px system-ui, sans-serif`;
-      ctx.fillText(unit, gx, gaugeY + gaugeR * 0.6);
+      ctx.font = `600 ${Math.max(10, Math.round(gaugeR * 0.2))}px system-ui, sans-serif`;
+      ctx.fillText(unit, gx, gaugeY + gaugeR * 0.86);
       ctx.fillStyle = colour;
-      ctx.font = `700 ${Math.max(9, Math.round(gaugeR * 0.17))}px system-ui, sans-serif`;
+      ctx.font = `700 ${Math.max(11, Math.round(gaugeR * 0.22))}px system-ui, sans-serif`;
       ctx.fillText(label, gx, py + ph * 0.13); // label row, above the arc
     };
 
