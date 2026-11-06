@@ -42,6 +42,7 @@
       <div class="hud-chips" aria-live="polite">
         <span class="chip chip--speed"><b id="hud-speed">0</b> km/h</span>
         <span class="chip chip--mult"><b id="hud-mult">×1.0</b></span>
+        <span class="chip chip--mode"><b id="hud-mode">Easy</b></span>
         <span class="chip chip--time"><b id="hud-time">00:00</b></span>
         <span class="chip chip--points"><b id="hud-points">0</b> pts</span>
         <span class="chip chip--dist"><b id="hud-dist">0</b> m</span>
@@ -71,6 +72,11 @@
           <div id="overlay" class="overlay" hidden>
             <div id="panel-menu" class="glass card" hidden>
               <h2>Ride</h2>
+              <div class="diff-group" role="group" aria-label="Mode">
+                <button class="diff-btn" type="button" data-difficulty="easy" aria-pressed="true">Easy</button>
+                <button class="diff-btn" type="button" data-difficulty="hard" aria-pressed="false">Hard</button>
+              </div>
+              <p class="hint">Easy leaves room to weave through traffic. Hard has more and faster cars.</p>
               <p id="menu-money" class="muted">Money: 0</p>
               <div class="upgrade-group">
                 <button class="btn" type="button" data-upgrade="grip">Grip</button>
@@ -119,6 +125,7 @@
         <h2>Mission</h2>
         <dl>
           <dt>Speed</dt><dd id="dash-speed">0 km/h</dd>
+          <dt>Mode</dt><dd id="dash-mode">Easy</dd>
           <dt>Multiplier</dt><dd id="dash-mult">×1.0</dd>
           <dt>Mission time</dt><dd id="dash-time">00:00</dd>
           <dt>Points</dt><dd id="dash-points">0</dd>

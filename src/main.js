@@ -2,7 +2,8 @@
  * Bootstrap: wires the run, loop, renderer, input, bike engine, garage, router, and UI together.
  * Every change to saved data goes through the command router.
  */
-import { createRun, stepRun, runSummary, UPGRADES } from './game/run.js';
+import { createRun, stepRun, runSummary, runPoints, UPGRADES } from './game/run.js';
+import { MODES } from './traffic/traffic.js';
 import { createGameLoop } from './engine/loop.js';
 import { createRoadRenderer } from './render/road-render.js';
 import { createInput } from './input/input.js';
@@ -25,6 +26,9 @@ const dom = {
   money: $('#menu-money'),
   hudSpeed: $('#hud-speed'),
   hudMult: $('#hud-mult'),
+  hudMode: $('#hud-mode'),
+  difficultyButtons: [...document.querySelectorAll('[data-difficulty]')],
+  dashMode: $('#dash-mode'),
   hudTime: $('#hud-time'),
   hudPoints: $('#hud-points'),
   hudDist: $('#hud-dist'),
@@ -58,6 +62,7 @@ const engine = createBikeEngine();
 /** @type {'menu' | 'running' | 'paused' | 'result'} */
 let mode = 'menu';
 let run = null;
+let chosenDifficulty = 'easy';
 let lastResult = null;
 let runSaved = false;
 let bestPoints = 0;
@@ -65,8 +70,9 @@ let lastEventId = null;
 let hudKey = '';
 
 const session = {
-  start({ seed } = {}) {
-    beginRun(seed ?? randomSeed());
+  start({ seed, difficulty } = {}) {
+    if (difficulty) chosenDifficulty = difficulty;
+    beginRun(seed ?? randomSeed(), chosenDifficulty);
     return { seed: run.seed };
   },
 };
@@ -83,8 +89,8 @@ function showPanel(name) {
   for (const [key, el] of Object.entries(dom.panels)) el.hidden = key !== name;
 }
 
-function beginRun(seed) {
-  run = createRun({ seed, upgrades: garage.get().upgrades });
+function beginRun(seed, difficulty) {
+  run = createRun({ seed, difficulty, upgrades: garage.get().upgrades });
   runSaved = false;
   lastEventId = null;
   mode = 'running';
@@ -93,13 +99,13 @@ function beginRun(seed) {
 }
 
 function startRun() {
-  dispatch('game.start', {});
+  dispatch('game.start', { difficulty: chosenDifficulty });
   engine.start().catch(() => {});
 }
 
 function openMenu() {
   mode = 'menu';
-  run = createRun({ seed: randomSeed(), upgrades: garage.get().upgrades }); // attract view, not stepped
+  run = createRun({ seed: randomSeed(), difficulty: chosenDifficulty, upgrades: garage.get().upgrades }); // attract view, not stepped
   showPanel('menu');
   refreshMenu();
 }
@@ -123,7 +129,7 @@ function finishRun() {
   dom.resultTitle.textContent = 'Crash!';
   dom.resultSummary.innerHTML = '';
   const lines = [
-    `${lastResult.points} points`,
+    `${MODES[lastResult.difficulty].label} mode · ${lastResult.points} points`,
     `${lastResult.distance} m · ${lastResult.overtakes} overtakes · ${lastResult.closeCalls} close calls`,
     `Best multiplier ×${lastResult.bestMultiplier.toFixed(1)}`,
     `Earned ${lastResult.money} money`,
@@ -145,6 +151,7 @@ function saveRun() {
     score: lastResult.points,
     distance: lastResult.distance,
     money: lastResult.money,
+    difficulty: lastResult.difficulty,
     name: dom.nameInput.value,
   });
   if (!result.ok) {
@@ -161,6 +168,9 @@ function saveRun() {
 }
 
 function refreshMenu() {
+  for (const btn of dom.difficultyButtons) {
+    btn.setAttribute('aria-pressed', String(btn.dataset.difficulty === chosenDifficulty));
+  }
   const g = garage.get();
   dom.money.textContent = `Money: ${g.money}`;
   for (const btn of dom.upgradeButtons) {
@@ -208,7 +218,7 @@ function formatTime(seconds) {
 function updateHud() {
   if (!run) return;
   const speed = Math.round(kmh(run.bike.speed));
-  const points = run.score.points + Math.floor(run.z);
+  const points = runPoints(run);
   const mult = `×${run.score.multiplier.toFixed(1)}`;
   const time = formatTime(run.time);
   const key = `${speed}|${mult}|${time}|${points}|${Math.floor(run.z)}|${bestPoints}`;
@@ -216,6 +226,8 @@ function updateHud() {
   hudKey = key;
   dom.hudSpeed.textContent = speed;
   dom.hudMult.textContent = mult;
+  dom.hudMode.textContent = MODES[run.difficulty].label;
+  dom.dashMode.textContent = MODES[run.difficulty].label;
   dom.hudTime.textContent = time;
   dom.hudPoints.textContent = points;
   dom.hudDist.textContent = Math.floor(run.z);
@@ -279,6 +291,13 @@ const loop = createGameLoop({
 
 // Wiring
 dom.upgradeButtons.forEach((btn) => btn.addEventListener('click', () => buyUpgrade(btn.dataset.upgrade)));
+dom.difficultyButtons.forEach((btn) =>
+  btn.addEventListener('click', () => {
+    chosenDifficulty = btn.dataset.difficulty;
+    refreshMenu();
+    if (mode === 'menu') openMenu();
+  }),
+);
 $('#btn-start').addEventListener('click', startRun);
 $('#btn-again').addEventListener('click', startRun);
 $('#btn-menu-result').addEventListener('click', openMenu);

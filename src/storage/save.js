@@ -87,6 +87,7 @@ export function sanitizeEntries(raw) {
       name: e.name.slice(0, NAME_MAX),
       score: Math.floor(e.score),
       distance: Number.isFinite(e.distance) ? Math.floor(e.distance) : 0,
+      difficulty: e.difficulty === 'hard' ? 'hard' : 'easy',
       at: Number.isFinite(e.at) ? e.at : 0,
     }))
     .sort((a, b) => b.score - a.score || a.at - b.at)
@@ -98,14 +99,14 @@ export function createHighScores(storage = null) {
   return {
     list: read,
     /** Returns {rank, persisted}. rank is 0 when the score misses the top list. */
-    add({ name, score, distance }, now = Date.now()) {
+    add({ name, score, distance, difficulty }, now = Date.now()) {
       const existing = read();
       const s = Math.floor(score);
       const rank = existing.filter((e) => e.score >= s).length + 1;
       if (rank > MAX_ENTRIES) return { rank: 0, persisted: false };
       const entries = sanitizeEntries([
         ...existing,
-        { name: name || 'PLAYER', score: s, distance: Math.floor(distance ?? 0), at: now },
+        { name: name || 'PLAYER', score: s, distance: Math.floor(distance ?? 0), difficulty: difficulty === 'hard' ? 'hard' : 'easy', at: now },
       ]);
       return { rank, persisted: writeVersioned(storage, HIGHSCORE_KEY, { entries }) };
     },

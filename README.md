@@ -18,6 +18,12 @@ Open http://localhost:8081. ES modules need HTTP, so opening `index.html` direct
 - Keyboard: `↑` / `W` gas, `↓` / `S` brake, `←` / `→` (or `A` / `D`) steer. `P` or `Esc` pauses.
 - Touch: on phones, steering pads on the left and GAS and BRAKE on the right, at the bottom of the screen.
 
+## Modes
+
+- **Easy** (default): cars in each lane keep at least 100 m apart, there are about 6 cars on the road, and every 80 m stretch always leaves at least one lane clear. Points are normal.
+- **Hard**: cars keep at least 50 m apart, there are about 9 cars, and cars are faster. Points are multiplied by 1.5.
+- Choose the mode on the start card. It shows in the top bar and on the dashboard.
+
 ## Scoring
 
 - Distance: 1 point per metre.

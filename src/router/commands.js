@@ -7,7 +7,7 @@
  * The session, garage, and high-score store are injected, so the router is testable with fakes.
  */
 import { createDispatcher, ValidationError } from './dispatcher.js';
-import { UPGRADES } from '../game/run.js';
+import { UPGRADES, DIFFICULTY_NAMES } from '../game/run.js';
 
 const isCount = (v, max) => Number.isInteger(v) && v >= 0 && v <= max;
 
@@ -18,7 +18,10 @@ export function createGameCommands({ session, garage, highScores }) {
     if (p.seed !== undefined && !isCount(p.seed, 2147483647)) {
       throw new ValidationError('seed must be an integer from 0 to 2147483647');
     }
-    return session.start({ seed: p.seed });
+    if (p.difficulty !== undefined && !DIFFICULTY_NAMES.includes(p.difficulty)) {
+      throw new ValidationError(`difficulty must be one of ${DIFFICULTY_NAMES.join(', ')}`);
+    }
+    return session.start({ seed: p.seed, difficulty: p.difficulty ?? 'easy' });
   });
 
   dispatcher.register('game.buyUpgrades', (p) => {
@@ -40,7 +43,7 @@ export function createGameCommands({ session, garage, highScores }) {
       name = p.name.trim().slice(0, 12) || 'PLAYER';
     }
     const credit = garage.addMoney(p.money ?? 0);
-    const rank = highScores.add({ name, score: p.score, distance: p.distance ?? 0 });
+    const rank = highScores.add({ name, score: p.score, distance: p.distance ?? 0, difficulty: p.difficulty });
     return { ...rank, money: credit.money };
   });
 
