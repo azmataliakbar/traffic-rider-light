@@ -1,0 +1,15 @@
+:root {
+  --bg: #05030f;
+  --cyan: #00f5ff;
+  --magenta: #ff2d95;
+  --lime: #b8ff3b;
+  --gold: #ffd44a;
+  --text: #f2f6ff;
+  --muted: #9aa6c7;
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --radius: 18px;
+  --gap: clamp(8px, 2.2vw, 16px);
+  --font-ui: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Cursive stack uses fonts already on the system. No external font is loaded. */
+  --font-script: "Segoe Script", "Brush Script MT", "Lucida Handwriting", "Snell Roundhand", cursive;
+}

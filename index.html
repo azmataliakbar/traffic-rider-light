@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="Neon Traffic Rider: a first-person pseudo-3D motorbike game with curves, traffic, close calls, and an engine synthesised in the browser." />
+  <link rel="canonical" href="https://neon-traffic-rider-azmataliakbar.netlify.app/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Neon Traffic Rider" />
+  <meta property="og:title" content="Neon Traffic Rider — First-Person Night Ride" />
+  <meta property="og:description" content="Weave through traffic, chase close calls above 100 km/h, and upgrade your bike." />
+  <meta property="og:url" content="https://neon-traffic-rider-azmataliakbar.netlify.app/" />
+  <meta property="og:image" content="https://neon-traffic-rider-azmataliakbar.netlify.app/images/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <title>Neon Traffic Rider — Pseudo-3D</title>
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/layout.css" />
+  <link rel="stylesheet" href="styles/controls.css" />
+</head>
+<body>
+  <div id="file-notice" class="file-notice" hidden>
+    <p><strong>The game isn't running yet.</strong></p>
+    <p>Opening this file directly from disk blocks the game script. Double-click <code>start.bat</code> in this folder, or run <code>npm start</code> and open <code>http://localhost:8080</code>.</p>
+  </div>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('file-notice').hidden = false;
+  </script>
+
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1 class="title">NEON TRAFFIC RIDER</h1>
+        <p class="subtitle">First-person night ride</p>
+      </div>
+      <div class="hud-chips" aria-live="polite">
+        <span class="chip chip--speed"><b id="hud-speed">0</b> km/h</span>
+        <span class="chip chip--mult"><b id="hud-mult">×1.0</b></span>
+        <span class="chip chip--time"><b id="hud-time">00:00</b></span>
+        <span class="chip chip--points"><b id="hud-points">0</b> pts</span>
+        <span class="chip chip--dist"><b id="hud-dist">0</b> m</span>
+      </div>
+      <div class="topbar__actions">
+        <button id="sound-status" class="chip chip--sound" type="button" hidden>Tap for sound</button>
+        <label class="volume" title="Volume">
+          <span aria-hidden="true">🔊</span>
+          <input id="volume" type="range" min="0" max="100" value="90" aria-label="Volume" />
+        </label>
+        <button id="btn-sound" class="btn btn--ghost" type="button">Mute</button>
+        <button id="btn-pause" class="btn btn--ghost" type="button">Pause</button>
+      </div>
+    </header>
+
+    <main class="console">
+      <aside class="dash dash--left glass" aria-label="Speed and engine dials">
+        <h2>Dials</h2>
+        <canvas id="dial-speed" class="dial" aria-label="Speed dial"></canvas>
+        <canvas id="dial-rpm" class="dial" aria-label="RPM dial"></canvas>
+      </aside>
+
+      <section class="stage">
+        <div id="arena-frame" class="arena">
+          <canvas id="arena" aria-label="First-person road view"></canvas>
+
+          <div id="overlay" class="overlay" hidden>
+            <div id="panel-menu" class="glass card" hidden>
+              <h2>Ride</h2>
+              <p id="menu-money" class="muted">Money: 0</p>
+              <div class="upgrade-group">
+                <button class="btn" type="button" data-upgrade="grip">Grip</button>
+                <button class="btn" type="button" data-upgrade="acceleration">Acceleration</button>
+              </div>
+              <p class="hint">Upgrades cost money earned on past rides. Keys: ↑ gas · ↓ brake · ← → steer · P pauses.</p>
+              <button id="btn-start" class="btn btn--primary" type="button">Start ride</button>
+            </div>
+
+            <div id="panel-paused" class="glass card" hidden>
+              <h2>Paused</h2>
+              <button id="btn-resume" class="btn btn--primary" type="button">Resume</button>
+              <button id="btn-menu-paused" class="btn" type="button">Quit to menu</button>
+            </div>
+
+            <div id="panel-result" class="glass card" hidden>
+              <h2 id="result-title">Crash!</h2>
+              <div id="result-summary" class="final-list"></div>
+              <label class="field">
+                <span>Your name</span>
+                <input id="player-name" type="text" maxlength="12" value="PLAYER" autocomplete="off" />
+              </label>
+              <button id="btn-save" class="btn btn--primary" type="button">Save score and bank money</button>
+              <p id="save-status" role="status"></p>
+              <div class="btn-row">
+                <button id="btn-again" class="btn" type="button">Ride again</button>
+                <button id="btn-menu-result" class="btn" type="button">Menu</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pads" aria-label="On-screen controls">
+          <div class="pad-group pad-group--steer">
+            <button class="pad pad--steer" type="button" data-control="left" aria-label="Steer left">◀</button>
+            <button class="pad pad--steer" type="button" data-control="right" aria-label="Steer right">▶</button>
+          </div>
+          <div class="pad-group pad-group--pedal">
+            <button class="pad pad--brake" type="button" data-control="down">BRAKE</button>
+            <button class="pad pad--gas" type="button" data-control="up">GAS</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="dash dash--right glass" aria-label="Ride statistics">
+        <h2>Mission</h2>
+        <dl>
+          <dt>Speed</dt><dd id="dash-speed">0 km/h</dd>
+          <dt>Multiplier</dt><dd id="dash-mult">×1.0</dd>
+          <dt>Mission time</dt><dd id="dash-time">00:00</dd>
+          <dt>Points</dt><dd id="dash-points">0</dd>
+          <dt>Best</dt><dd id="dash-best">0</dd>
+        </dl>
+        <h2>Top 10</h2>
+        <ol id="leaderboard" class="leaderboard"></ol>
+      </aside>
+    </main>
+
+    <footer class="signature">
+      <p class="signature__text">Idea By: Azmat Ali</p>
+    </footer>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

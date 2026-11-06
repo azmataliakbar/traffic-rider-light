@@ -1,0 +1,14 @@
+{
+  "name": "traffic-rider-light",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Neon Traffic Rider: a first-person pseudo-3D motorbike game with curves, traffic, close calls, and a browser-synthesised engine.",
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
