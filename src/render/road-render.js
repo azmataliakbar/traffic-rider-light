@@ -144,6 +144,7 @@ export function createRoadRenderer(canvas) {
    * Bands further away are slightly fainter, which blends them into the horizon.
    */
   function drawEdges(cam, segs) {
+    const narrowView = W < 600;
     const n = segs.length;
     const zs = [...segs, segs[n - 1] + SEGMENT];
     const BAND = 6;
@@ -162,11 +163,12 @@ export function createRoadRenderer(canvas) {
         pts.forEach((pt, i) => (i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y)));
         ctx.globalAlpha = alpha;
         ctx.strokeStyle = col;
-        ctx.lineWidth = Math.min(8, Math.max(1.5, pts[0].scale * 0.22));
+        // Thin on phones so cars stay visible; the laptop keeps the bolder neon edges
+        ctx.lineWidth = narrowView ? Math.min(2, Math.max(1, pts[0].scale * 0.08)) : Math.min(8, Math.max(1.5, pts[0].scale * 0.22));
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
         ctx.shadowColor = col;
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = narrowView ? 3 : 8;
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
