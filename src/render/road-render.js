@@ -199,7 +199,7 @@ export function createRoadRenderer(canvas) {
     const rpm = info.rpm ?? 1000;
     const gear = info.gear ?? 0;
     const cx = W / 2;
-    const pivotY = H * 0.86;
+    const pivotY = H * (W < 600 ? 0.76 : 0.86); // raised on narrow screens so the pod stays inside the arena
     const barHalf = Math.min(W * 0.46, 330);
     const tilt = lean * 0.55; // bar sways with the steering lean
     const barEnd = (side) => [cx + side * barHalf * Math.cos(tilt), pivotY - side * barHalf * Math.sin(tilt) * 0.6];
@@ -256,8 +256,10 @@ export function createRoadRenderer(canvas) {
     }
 
     // Instrument pod between the grips
-    const pw = Math.min(W * 0.5, 320);
-    const ph = Math.min(H * 0.34, 150);
+    // Narrow screens get a wider, taller pod so the two gauges and their text have room
+    const narrow = W < 600;
+    const pw = narrow ? Math.min(W * 0.92, 340) : Math.min(W * 0.5, 320);
+    const ph = narrow ? Math.min(H * 0.42, 170) : Math.min(H * 0.34, 150);
     const px = cx - pw / 2;
     const py = pivotY - ph * 0.62;
     ctx.save();
@@ -276,8 +278,9 @@ export function createRoadRenderer(canvas) {
     ctx.shadowBlur = 0;
     ctx.restore();
 
-    const gaugeR = Math.min(pw * 0.22, ph * 0.42);
-    const gaugeY = py + ph * 0.6;
+    // Gauge sits in the lower part of the pod; the label row and gear chip stay above the arcs
+    const gaugeR = Math.min(pw * 0.22, ph * 0.36);
+    const gaugeY = py + ph * 0.62;
     const gauge = (gx, value, max, label, colour, unit, big) => {
       const START = Math.PI * 0.75;
       const SWEEP = Math.PI * 1.5;
@@ -335,15 +338,15 @@ export function createRoadRenderer(canvas) {
       ctx.fillText(unit, gx, gaugeY + gaugeR * 0.6);
       ctx.fillStyle = colour;
       ctx.font = `700 ${Math.max(9, Math.round(gaugeR * 0.17))}px system-ui, sans-serif`;
-      ctx.fillText(label, gx, py + ph * 0.2); // above each gauge, clear of the arc
+      ctx.fillText(label, gx, py + ph * 0.13); // label row, above the arc
     };
 
     gauge(px + pw * 0.27, kmh, 300, 'SPEED', CYAN, 'km/h', true);
     gauge(px + pw * 0.73, rpm / 1000, 10, 'RPM', MAGENTA, '×1000', false);
 
     // Gear chip in the centre of the pod
-    const gw = Math.max(44, pw * 0.16);
-    const gh = Math.max(28, ph * 0.22);
+    const gw = Math.max(34, pw * 0.14);
+    const gh = Math.max(24, ph * 0.2);
     ctx.beginPath();
     ctx.roundRect?.(cx - gw / 2, py + ph * 0.08, gw, gh, 8) ?? ctx.rect(cx - gw / 2, py + ph * 0.08, gw, gh);
     ctx.fillStyle = 'rgba(184, 255, 59, 0.12)';
