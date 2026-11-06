@@ -195,7 +195,8 @@ export function createRoadRenderer(canvas) {
    */
   function drawRider(run, time) {
     const bike = run.bike;
-    const u = Math.min(W / 700, H / 420);
+    const u = Math.min(W / 560, H / 400); // scale with width and height so it reads on phones
+    const lw = (px) => Math.max(1.6, px * u); // keep lines visible when small
     const cx = W / 2;
     const base = H * 0.985;
     const lean = bike.lean;
@@ -223,7 +224,7 @@ export function createRoadRenderer(canvas) {
       }
       if (edge) {
         ctx.strokeStyle = edge;
-        ctx.lineWidth = width * u;
+        ctx.lineWidth = lw(width);
         ctx.shadowColor = edge;
         ctx.shadowBlur = glow;
         ctx.stroke();
@@ -238,7 +239,7 @@ export function createRoadRenderer(canvas) {
         else ctx.lineTo(sx, sy);
       });
       ctx.strokeStyle = colour;
-      ctx.lineWidth = width * u;
+      ctx.lineWidth = lw(width);
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.shadowColor = colour;
@@ -254,7 +255,7 @@ export function createRoadRenderer(canvas) {
       ctx.fill();
       if (edge) {
         ctx.strokeStyle = edge;
-        ctx.lineWidth = width * u;
+        ctx.lineWidth = lw(width);
         ctx.shadowColor = edge;
         ctx.shadowBlur = glow;
         ctx.stroke();
@@ -284,7 +285,7 @@ export function createRoadRenderer(canvas) {
     ctx.fillStyle = '#05030f';
     ctx.fill();
     ctx.strokeStyle = LIME;
-    ctx.lineWidth = 3 * u;
+    ctx.lineWidth = lw(3);
     ctx.shadowColor = LIME;
     ctx.shadowBlur = 10;
     ctx.stroke();
@@ -296,7 +297,7 @@ export function createRoadRenderer(canvas) {
       ctx.moveTo(wx, wy);
       ctx.lineTo(wx + Math.cos(a) * wr * 0.85, wy + Math.sin(a) * wr * 0.85);
       ctx.strokeStyle = 'rgba(184, 255, 59, 0.6)';
-      ctx.lineWidth = 1.5 * u;
+      ctx.lineWidth = lw(1.5);
       ctx.stroke();
     }
 
