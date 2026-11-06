@@ -364,3 +364,31 @@ body::before {
     min-height: 48px;
   }
 }
+
+/* Phones: a taller road view, and space at the bottom for the Netlify badge in the corner */
+@media (max-width: 599px) {
+  .app {
+    padding-bottom: 84px;
+  }
+
+  .arena {
+    aspect-ratio: 3 / 4;
+    max-height: 66vh;
+  }
+
+  .pads {
+    gap: 12px;
+  }
+
+  .pad--steer {
+    min-height: 124px;
+  }
+
+  .pad--gas {
+    min-height: 80px;
+  }
+
+  .pad--brake {
+    min-height: 56px;
+  }
+}

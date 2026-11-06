@@ -199,8 +199,8 @@ export function createRoadRenderer(canvas) {
     const rpm = info.rpm ?? 1000;
     const gear = info.gear ?? 0;
     const cx = W / 2;
-    const pivotY = H * (W < 600 ? 0.76 : 0.8); // raised on narrow screens so the pod stays inside the arena
-    const barHalf = Math.min(W * 0.46, 330);
+    const pivotY = H * (W < 600 ? 0.8 : 0.8); // raised on narrow screens so the pod stays inside the arena
+    const barHalf = Math.min(W * (W < 600 ? 0.38 : 0.46), 330); // keeps the grips inside the view on phones
     const tilt = lean * 0.55; // bar sways with the steering lean
     const barEnd = (side) => [cx + side * barHalf * Math.cos(tilt), pivotY - side * barHalf * Math.sin(tilt) * 0.6];
     const thick = Math.max(7, W * 0.022);
@@ -260,7 +260,7 @@ export function createRoadRenderer(canvas) {
     const narrow = W < 600;
     // Wide screens get a larger pod and larger text
     const pw = narrow ? Math.min(W * 0.92, 340) : Math.min(W * 0.5, 380);
-    const ph = narrow ? Math.min(H * 0.42, 170) : Math.min(H * 0.4, 200);
+    const ph = narrow ? Math.min(H * 0.34, 150) : Math.min(H * 0.4, 200);
     const px = cx - pw / 2;
     const py = pivotY - ph * 0.62;
     ctx.save();
