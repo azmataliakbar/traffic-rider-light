@@ -263,11 +263,11 @@ const loop = createGameLoop({
     }
   },
   render() {
-    if (run) renderer.draw(run);
     const moving = mode === 'running' && run;
     const speed = moving ? run.bike.speed : 0;
     const throttle = moving && input.state().up ? 1 : 0;
     const info = engine.update({ speed, throttle });
+    if (run) renderer.draw(run, undefined, info);
     if (dom.dialSpeed.offsetParent !== null) {
       drawDial(dom.dialSpeed, { value: kmh(speed), max: 300, label: 'KM/H' });
       drawDial(dom.dialRpm, { value: info.rpm / 100, max: 100, label: 'RPM ×100', color: '#ff2d95' });
